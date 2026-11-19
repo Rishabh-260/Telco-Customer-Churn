@@ -1,0 +1,86 @@
+table customer_predictions
+
+    measure Customers = DISTINCTCOUNT(customer_predictions[customerID])
+        formatString: #,##0
+
+    measure 'Observed Churned' =
+            CALCULATE([Customers], customer_predictions[Churn] = "Yes")
+        formatString: #,##0
+
+    measure 'Observed Churn Rate' = DIVIDE([Observed Churned], [Customers])
+        formatString: 0.00%;-0.00%;0.00%
+
+    measure 'Flagged Customers' =
+            CALCULATE([Customers], customer_predictions[predicted_churn] = 1)
+        formatString: #,##0
+
+    measure 'Estimated Monthly Charges at Risk' =
+            CALCULATE(SUM(customer_predictions[MonthlyCharges]), customer_predictions[predicted_churn] = 1)
+        formatString: $#,##0.00
+
+    measure 'Average Churn Probability' = AVERAGE(customer_predictions[churn_probability])
+        formatString: 0.00%
+
+    column customerID
+        dataType: string
+        sourceColumn: customerID
+        summarizeBy: none
+
+    column Churn
+        dataType: string
+        sourceColumn: Churn
+        summarizeBy: none
+
+    column Contract
+        dataType: string
+        sourceColumn: Contract
+        summarizeBy: none
+
+    column PaymentMethod
+        dataType: string
+        sourceColumn: PaymentMethod
+        summarizeBy: none
+
+    column tenure
+        dataType: int64
+        sourceColumn: tenure
+        summarizeBy: sum
+
+    column MonthlyCharges
+        dataType: double
+        sourceColumn: MonthlyCharges
+        formatString: $#,##0.00
+        summarizeBy: sum
+
+    column churn_probability
+        dataType: double
+        sourceColumn: churn_probability
+        formatString: 0.00%
+        summarizeBy: average
+
+    column predicted_churn
+        dataType: int64
+        sourceColumn: predicted_churn
+        summarizeBy: sum
+
+    column estimated_monthly_charges_at_risk
+        dataType: double
+        sourceColumn: estimated_monthly_charges_at_risk
+        formatString: $#,##0.00
+        summarizeBy: sum
+
+    column model_name
+        dataType: string
+        sourceColumn: model_name
+        summarizeBy: none
+
+    partition customer_predictions = m
+        mode: import
+        source =
+                let
+                    Source = Csv.Document(File.Contents("PATH_TO_CUSTOMER_PREDICTIONS.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+                    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+                    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", {{"customerID", type text}, {"Churn", type text}, {"Contract", type text}, {"PaymentMethod", type text}, {"tenure", Int64.Type}, {"MonthlyCharges", type number}, {"churn_probability", type number}, {"predicted_churn", Int64.Type}, {"estimated_monthly_charges_at_risk", type number}, {"model_name", type text}})
+                in
+                    #"Changed Type"
+

@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env
+.pytest_cache/
+mlruns/
+artifacts/
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+reports/generated/*
+!reports/generated/.gitkeep
+**/.pbi/localSettings.json
+**/.pbi/cache.abf
+

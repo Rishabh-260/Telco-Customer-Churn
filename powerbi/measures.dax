@@ -1,0 +1,25 @@
+Customers = DISTINCTCOUNT(customer_predictions[customerID])
+
+Observed Churned =
+CALCULATE(
+    [Customers],
+    customer_predictions[Churn] = "Yes"
+)
+
+Observed Churn Rate =
+DIVIDE([Observed Churned], [Customers])
+
+Flagged Customers =
+CALCULATE(
+    [Customers],
+    customer_predictions[predicted_churn] = 1
+)
+
+Estimated Monthly Charges at Risk =
+CALCULATE(
+    SUM(customer_predictions[MonthlyCharges]),
+    customer_predictions[predicted_churn] = 1
+)
+
+Average Churn Probability = AVERAGE(customer_predictions[churn_probability])
+
